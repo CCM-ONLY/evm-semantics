@@ -1564,14 +1564,16 @@ For each `CALL*` operation, we make a corresponding call to `#call` and a state-
                    | "#mkCodeDeposit" Int
                    | "#finishCodeDeposit" Int WordStack
  // ---------------------------------------------------
-    rule <k> #halt ~> #endCreate => #halt ... </k>
+    rule <statusCode> _:ExceptionalStatusCode </statusCode> <k> #halt ~> #endCreate => #popCallStack ~> #popWorldState                   ~> #halt ... </k>
+    rule <statusCode> EVMC_REVERT             </statusCode> <k> #halt ~> #endCreate => #popCallStack ~> #popWorldState ~> #refund GAVAIL ~> #halt ... </k> <gas> GAVAIL </gas>
+    rule <statusCode> EVMC_SUCCESS            </statusCode> <k> #halt ~> #endCreate =>                                                      #halt ... </k>
 
     rule <statusCode> _:ExceptionalStatusCode </statusCode>
-         <k> #halt ~> #codeDeposit _ => #popCallStack ~> #popWorldState ~> 0 ~> #push ... </k>
+         <k> #halt ~> #codeDeposit _ => 0 ~> #push ... </k>
          <output> _ => .WordStack </output>
 
     rule <statusCode> EVMC_REVERT </statusCode>
-         <k> #halt ~> #codeDeposit _ => #popCallStack ~> #popWorldState ~> #refund GAVAIL ~> 0 ~> #push ... </k>
+         <k> #halt ~> #codeDeposit _ => 0 ~> #push ... </k>
          <gas> GAVAIL </gas>
 
     rule <statusCode> EVMC_SUCCESS </statusCode>
