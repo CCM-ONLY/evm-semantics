@@ -1559,10 +1559,13 @@ For each `CALL*` operation, we make a corresponding call to `#call` and a state-
            ...
          </account>
 
-    syntax KItem ::= "#codeDeposit" Int
+    syntax KItem ::= "#endCreate"
+                   | "#codeDeposit" Int
                    | "#mkCodeDeposit" Int
                    | "#finishCodeDeposit" Int WordStack
  // ---------------------------------------------------
+    rule <k> #halt ~> #endCreate => #halt ... </k>
+
     rule <statusCode> _:ExceptionalStatusCode </statusCode>
          <k> #halt ~> #codeDeposit _ => #popCallStack ~> #popWorldState ~> 0 ~> #push ... </k>
          <output> _ => .WordStack </output>
@@ -1622,6 +1625,7 @@ For each `CALL*` operation, we make a corresponding call to `#call` and a state-
     rule <k> CREATE VALUE MEMSTART MEMWIDTH
           => #checkCall ACCT VALUE
           ~> #create ACCT #newAddr(ACCT, NONCE) VALUE #range(LM, MEMSTART, MEMWIDTH)
+          ~> #endCreate
           ~> #codeDeposit #newAddr(ACCT, NONCE)
          ...
          </k>
