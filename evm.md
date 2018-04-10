@@ -1422,15 +1422,14 @@ The various `CALL*` (and other inter-contract control flow) operations will be d
 
     syntax KItem ::= "#endCall"
  // ---------------------------
-    rule <statusCode> _:ExceptionalStatusCode </statusCode> <k> #halt ~> #endCall => #popCallStack ~> #popWorldState                    ~> #halt ... </k>
+    rule <statusCode> _:ExceptionalStatusCode </statusCode> <k> #halt ~> #endCall => #popCallStack ~> #popWorldState                    ~> #halt ... </k> <output> _ => .WordStack </output>
     rule <statusCode> EVMC_REVERT             </statusCode> <k> #halt ~> #endCall => #popCallStack ~> #popWorldState  ~> #refund GAVAIL ~> #halt ... </k> <gas> GAVAIL </gas>
     rule <statusCode> EVMC_SUCCESS            </statusCode> <k> #halt ~> #endCall => #popCallStack ~> #dropWorldState ~> #refund GAVAIL ~> #halt ... </k> <gas> GAVAIL </gas>
 
     syntax KItem ::= "#return" Int Int
  // ----------------------------------
     rule <statusCode> _:ExceptionalStatusCode </statusCode>
-         <k> #halt ~> #return _ _ => 0 ~> #push ... </k>
-         <output> _ => .WordStack </output>
+         <k> #halt  ~> #return _ _ => 0 ~> #push ... </k>
 
     rule <statusCode> EVMC_REVERT </statusCode>
          <k> #halt ~> #return RETSTART RETWIDTH => 0 ~> #push ~> #setLocalMem RETSTART RETWIDTH OUT ... </k>
@@ -1564,17 +1563,15 @@ For each `CALL*` operation, we make a corresponding call to `#call` and a state-
                    | "#mkCodeDeposit" Int
                    | "#finishCodeDeposit" Int WordStack
  // ---------------------------------------------------
-    rule <statusCode> _:ExceptionalStatusCode </statusCode> <k> #halt ~> #endCreate => #popCallStack ~> #popWorldState                   ~> #halt ... </k>
+    rule <statusCode> _:ExceptionalStatusCode </statusCode> <k> #halt ~> #endCreate => #popCallStack ~> #popWorldState                   ~> #halt ... </k> <output> _ => .WordStack </output>
     rule <statusCode> EVMC_REVERT             </statusCode> <k> #halt ~> #endCreate => #popCallStack ~> #popWorldState ~> #refund GAVAIL ~> #halt ... </k> <gas> GAVAIL </gas>
     rule <statusCode> EVMC_SUCCESS            </statusCode> <k> #halt ~> #endCreate =>                                                      #halt ... </k>
 
     rule <statusCode> _:ExceptionalStatusCode </statusCode>
          <k> #halt ~> #codeDeposit _ => 0 ~> #push ... </k>
-         <output> _ => .WordStack </output>
 
     rule <statusCode> EVMC_REVERT </statusCode>
          <k> #halt ~> #codeDeposit _ => 0 ~> #push ... </k>
-         <gas> GAVAIL </gas>
 
     rule <statusCode> EVMC_SUCCESS </statusCode>
          <k> #halt ~> #codeDeposit ACCT => #mkCodeDeposit ACCT ... </k>
