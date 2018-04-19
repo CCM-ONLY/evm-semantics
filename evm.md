@@ -851,27 +851,11 @@ These are just used by the other operators for shuffling local execution state a
 ```k
     syntax InternalOp ::= "#newAccount" Int
  // ---------------------------------------
-    rule <k> #newAccount ACCT => #end EVMC_ACCOUNT_ALREADY_EXISTS ... </k>
-         <account>
-           <acctID> ACCT  </acctID>
-           <code>   CODE  </code>
-           <nonce>  NONCE </nonce>
-           ...
-         </account>
-      requires CODE =/=K .WordStack orBool NONCE =/=K 0
+    rule <k> (. => #accountNonexistent(ACCT)) ~> #newAccount ACCT ... </k>
 
-    rule <k> #newAccount ACCT => . ... </k>
-         <account>
-           <acctID>  ACCT       </acctID>
-           <code>    .WordStack </code>
-           <nonce>   0          </nonce>
-           <storage> _ => .Map  </storage>
-           <balance> 0          </balance>
-           ...
-         </account>
-
-    rule <k> #newAccount ACCT => . ... </k>
-         <activeAccounts> ACCTS (.Set => SetItem(ACCT)) </activeAccounts>
+    rule <k> false ~> #newAccount ACCT => #end EVMC_ACCOUNT_ALREADY_EXISTS ... </k>
+    rule <k> true  ~> #newAccount ACCT => .                                ... </k>
+         <activeAccounts> ... (.Set => SetItem(ACCT)) </activeAccounts>
          <accounts>
            ( .Bag
           => <account>
@@ -881,7 +865,6 @@ These are just used by the other operators for shuffling local execution state a
            )
            ...
          </accounts>
-      requires notBool ACCT in ACCTS
 ```
 
 The following operations help with loading account information from an external running client.
